@@ -15,7 +15,7 @@ FMU is a functional model unit exported from one of the main Modelica tools, e.g
 Currently only FMU's exported in co-simulation mode are supported.
 * `gymalgs.rl` package for Reinforcement Learning algorithms compatible to OpenAI Gym environments.
 
-## Instalation
+## Installation
 Full instalation guide is available [here](https://github.com/ucuapps/modelicagym/blob/master/docs/install.md).
 
 You can test working environment by running 
