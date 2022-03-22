@@ -13,14 +13,14 @@ from modelicagym.environment import FMI2CSEnv, FMI1CSEnv, FMI2MEEnv
 logger = logging.getLogger(__name__)
 
 
-NINETY_DEGREES_IN_RAD = (90 / 180) * math.pi
-TWELVE_DEGREES_IN_RAD = (12 / 180) * math.pi
+ROOM_TEMPERATURE_BOND = 3
+ROOM_TEMPERATURE_set = 273.15+23
 
 
-class CarHeaEnv:
+class AHUroomENV:
     """
-    Class extracting common logic for JModelica and Dymola environments for CartPole experiments.
-    Allows to avoid code duplication.
+    Class extracting common logic for JModelica and Dymola environments for room with AHU experiments.
+    Implement physical environment separately in order to allow to avoid code duplication.
     Implements all methods for connection to the OpenAI Gym as an environment.
 
 
@@ -31,21 +31,21 @@ class CarHeaEnv:
         """
         Internal logic that is utilized by parent classes.
         Checks if cart position or pole angle are inside required bounds, defined by thresholds:
-        x_threshold - 2.4
+        p_threshold - 1000, power consumption of supply fan
         angle threshold - 12 degrees
 
         :return: boolean flag if current state of the environment indicates that experiment has ended.
         True, if cart is not further than 2.4 from the starting point
         and angle of pole deflection from vertical is less than 12 degrees
         """
-        x, x_dot, theta, theta_dot = self.state
-        logger.debug("x: {0}, x_dot: {1}, theta: {2}, theta_dot: {3}".format(x, x_dot, theta, theta_dot))
+        p, t = self.state
+        logger.debug("p: {0}, t: {1}".format(p, t))
 
-        theta = abs(theta - NINETY_DEGREES_IN_RAD)
+        t = abs(t - ROOM_TEMPERATURE_set)
 
-        if abs(x) > self.x_threshold:
+        if abs(p) > self.p_threshold:
             done = True
-        elif theta > self.theta_threshold:
+        elif t > self.t_threshold:
             done = True
         else:
             done = False
@@ -68,7 +68,7 @@ class CarHeaEnv:
 
         :return: Box state space with specified lower and upper bounds for state variables.
         """
-        high = np.array([self.x_threshold, np.inf, self.theta_threshold, np.inf])
+        high = np.array([self.p_threshold, np.inf, self.t_threshold, np.inf])
         return spaces.Box(-high, high)
 
     # OpenAI Gym API implementation
@@ -164,7 +164,7 @@ class CarHeaEnv:
         return self.render(close=True)
 
 
-class JModelicaCSCartPoleEnv(CartPoleEnv, FMI2CSEnv):
+class JModelicaCSCartPoleEnv(AHUroomENV, FMI2CSEnv):
     """
     Wrapper class for creation of cart-pole environment using JModelica-compiled FMU (FMI standard v.2.0).
 
@@ -198,7 +198,7 @@ class JModelicaCSCartPoleEnv(CartPoleEnv, FMI2CSEnv):
         logger.setLevel(log_level)
 
         self.force = force
-        self.theta_threshold = TWELVE_DEGREES_IN_RAD
+        self.t_threshold = ROOM_TEMPERATURE_BOND
         self.x_threshold = 2.4
 
         self.viewer = None
@@ -219,7 +219,7 @@ class JModelicaCSCartPoleEnv(CartPoleEnv, FMI2CSEnv):
         super().__init__(path, config, log_level)
 
 
-class JModelicaMECartPoleEnv(CartPoleEnv, FMI2MEEnv):
+class JModelicaMECartPoleEnv(AHUroomENV, FMI2MEEnv):
     """
     Wrapper class for creation of cart-pole environment using JModelica-compiled FMU (FMI standard v.2.0).
 
@@ -253,7 +253,7 @@ class JModelicaMECartPoleEnv(CartPoleEnv, FMI2MEEnv):
         logger.setLevel(log_level)
 
         self.force = force
-        self.theta_threshold = TWELVE_DEGREES_IN_RAD
+        self.t_threshold = ROOM_TEMPERATURE_BOND
         self.x_threshold = 2.4
 
         self.viewer = None
@@ -274,7 +274,7 @@ class JModelicaMECartPoleEnv(CartPoleEnv, FMI2MEEnv):
         super().__init__(path, config, log_level)
 
 
-class DymolaCSCartPoleEnv(CartPoleEnv, FMI1CSEnv):
+class DymolaCSCartPoleEnv(AHUroomENV, FMI1CSEnv):
     """
     Wrapper class for creation of cart-pole environment using Dymola-compiled FMU (FMI standard v.1.0).
 
@@ -308,7 +308,7 @@ class DymolaCSCartPoleEnv(CartPoleEnv, FMI1CSEnv):
         logger.setLevel(log_level)
 
         self.force = force
-        self.theta_threshold = TWELVE_DEGREES_IN_RAD
+        self.t_threshold = ROOM_TEMPERATURE_BOND
         self.x_threshold = 2.4
 
         self.viewer = None
