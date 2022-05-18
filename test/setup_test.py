@@ -2,7 +2,7 @@
 def test_pyfmi(mode="CS"):
     from pyfmi import load_fmu
 
-    model = load_fmu(f"../resources/jmodelica/linux/ModelicaGym_CartPole_{mode}.fmu",
+    model = load_fmu(f"../resources/windows/ModelicaGym_CartPole_{mode}_12.fmu",
                      kind=mode, log_level=7)
 
     model.reset()
@@ -32,5 +32,5 @@ def test_gym(visualize=True):
 
 if __name__ == '__main__':
     test_pyfmi()
-    test_pyfmi("ME")
+    test_pyfmi("CS")
     test_gym()
